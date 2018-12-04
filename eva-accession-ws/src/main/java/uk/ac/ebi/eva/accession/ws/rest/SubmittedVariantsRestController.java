@@ -34,6 +34,8 @@ import uk.ac.ebi.eva.accession.core.ISubmittedVariant;
 import uk.ac.ebi.eva.accession.core.SubmittedVariant;
 import uk.ac.ebi.eva.accession.core.SubmittedVariantAccessioningService;
 import uk.ac.ebi.eva.accession.core.summary.SubmittedVariantSummaryFunction;
+import uk.ac.ebi.eva.accession.ws.dto.BeaconAlleleResponse;
+import uk.ac.ebi.eva.accession.ws.service.BeaconService;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,13 +52,13 @@ public class SubmittedVariantsRestController {
     private Function<ISubmittedVariant, String> hashingFunction =
             new SubmittedVariantSummaryFunction().andThen(new SHA1HashingFunction());
 
-    private SubmittedVariantAccessioningService submittedVariantsService;
+    private BeaconService beaconService;
 
     public SubmittedVariantsRestController(
             BasicRestController<SubmittedVariant, ISubmittedVariant, String, Long> basicRestController,
-            SubmittedVariantAccessioningService submittedVariantsService) {
+            BeaconService beaconService) {
         this.basicRestController = basicRestController;
-        this.submittedVariantsService = submittedVariantsService;
+        this.beaconService = beaconService;
     }
 
     @ApiOperation(value = "Find submitted variants (SS) by identifier", notes = "This endpoint returns the submitted "
@@ -71,40 +73,26 @@ public class SubmittedVariantsRestController {
     }
 
     @GetMapping(value = "/exists", produces = "application/json")
-    public boolean isVariantExists(@RequestParam(name="assemblyId") String assembly,
-                                   @RequestParam(name="referenceName") String contig,
-                                   @RequestParam(name="study") String study,
-                                   @RequestParam(name="start") long start,
-                                   @RequestParam(name="referenceBases") String reference,
-                                   @RequestParam(name="alternateBases") String alternate) {
+    public BeaconAlleleResponse isVariantExists(@RequestParam(name="assemblyId") String assembly,
+                                                @RequestParam(name="referenceName") String chromosome,
+                                                @RequestParam(name="study") String study,
+                                                @RequestParam(name="start") long start,
+                                                @RequestParam(name="referenceBases") String reference,
+                                                @RequestParam(name="alternateBases") String alternate) {
 
-        return !getVariantByIdFields(assembly, contig, study, start, reference, alternate).isEmpty();
+        return beaconService.queryBeacon(null, alternate, reference, chromosome, start, assembly, false, study);
     }
 
     @GetMapping(value = "/by-id-fields", produces = "application/json")
     public List<AccessionResponseDTO<SubmittedVariant, ISubmittedVariant, String, Long>> getByIdFields(
             @RequestParam(name="assemblyId") String assembly,
-            @RequestParam(name="referenceName") String contig,
+            @RequestParam(name="referenceName") String chromosome,
             @RequestParam(name="study") String study,
             @RequestParam(name="start") long start,
             @RequestParam(name="referenceBases") String reference,
             @RequestParam(name="alternateBases") String alternate) {
 
-        return getVariantByIdFields(assembly, contig, study, start, reference, alternate);
-    }
-
-    private List<AccessionResponseDTO<SubmittedVariant, ISubmittedVariant, String, Long>> getVariantByIdFields(
-            String assembly, String contig, String study, long start, String reference, String alternate) {
-
-        ISubmittedVariant variant = new SubmittedVariant(assembly, 0, study, contig, start, reference, alternate, null);
-        String hash = hashingFunction.apply(variant);
-
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> variants = submittedVariantsService.getByHashedMessageIn(
-                Collections.singletonList(hash));
-
-        return variants.stream()
-                       .map(wrapper -> new AccessionResponseDTO<>(wrapper, SubmittedVariant::new))
-                       .collect(Collectors.toList());
+        return beaconService.getVariantByIdFields(assembly, chromosome, study, start, reference, alternate);
     }
 
 }
