@@ -43,4 +43,8 @@ public class SubmittedVariantMonotonicAccessioningService
             List<Long> clusteredVariantAccessions) {
         return dbService.findByClusteredVariantAccessionIn(clusteredVariantAccessions);
     }
+
+    public List<AccessionWrapper<ISubmittedVariant, String, Long>> getByHash(List<String> hashes) {
+        return dbService.findByHashedMessageIn(hashes);
+    }
 }

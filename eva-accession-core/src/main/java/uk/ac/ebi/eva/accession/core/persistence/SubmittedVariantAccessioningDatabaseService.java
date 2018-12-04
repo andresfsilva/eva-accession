@@ -49,4 +49,12 @@ public class SubmittedVariantAccessioningDatabaseService
                 entity -> wrappedAccessions.add(toModelWrapper(entity)));
         return wrappedAccessions;
     }
+
+    public List<AccessionWrapper<ISubmittedVariant, String, Long>> findByHashedMessageIn(
+            List<String> hashes) {
+        List<AccessionWrapper<ISubmittedVariant, String, Long>> wrappedAccessions = new ArrayList<>();
+        repository.findByHashedMessageIn(hashes).iterator().forEachRemaining(
+                entity -> wrappedAccessions.add(toModelWrapper(entity)));
+        return wrappedAccessions;
+    }
 }
