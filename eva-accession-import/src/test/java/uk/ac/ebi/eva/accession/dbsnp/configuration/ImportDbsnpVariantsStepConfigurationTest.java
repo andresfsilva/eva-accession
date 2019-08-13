@@ -124,14 +124,14 @@ public class ImportDbsnpVariantsStepConfigurationTest {
         List<DbsnpClusteredVariantEntity> storedClusteredVariants = new ArrayList<>();
         clusteredVariantRepository.findAll().forEach(storedClusteredVariants::add);
 
-        checkFlagInSubmittedVariants(storedSubmittedVariants, SubmittedVariantEntity::isAssemblyMatch,
+        checkFlagInSubmittedVariants(storedSubmittedVariants, DbsnpSubmittedVariantEntity::isAssemblyMatch,
                                      Arrays.asList(26201546L, 1540359250L, 88888888L, 44444L));
-        checkFlagInSubmittedVariants(storedSubmittedVariants, SubmittedVariantEntity::isSupportedByEvidence,
+        checkFlagInSubmittedVariants(storedSubmittedVariants, DbsnpSubmittedVariantEntity::isSupportedByEvidence,
                                      Arrays.asList(26201546L, 25062583L, 25312601L, 27587141L, 44444L, 88888888L));
-        checkFlagInSubmittedVariants(storedSubmittedVariants, SubmittedVariantEntity::isAllelesMatch,
+        checkFlagInSubmittedVariants(storedSubmittedVariants, DbsnpSubmittedVariantEntity::isAllelesMatch,
                                      Arrays.asList(26201546L, 1540359250L, 25062583L, 25312601L, 44444L, 88888888L,
                                                    9999999L));
-        checkFlagInSubmittedVariants(storedSubmittedVariants, SubmittedVariantEntity::isValidated,
+        checkFlagInSubmittedVariants(storedSubmittedVariants, DbsnpSubmittedVariantEntity::isValidated,
                                      Arrays.asList(26201546L, 25312601L, 27587141L, 44444L, 88888888L));
         checkFlagInClusteredVariants(storedClusteredVariants, DbsnpClusteredVariantEntity::isValidated,
                                      Arrays.asList(13823349L, 7777777L));
@@ -145,7 +145,7 @@ public class ImportDbsnpVariantsStepConfigurationTest {
                                               List<Long> expectedVariants) {
         Set<Long> variantsToCheck = unfilteredVariants.stream()
                                                       .filter(predicate)
-                                                      .map(SubmittedVariantEntity::getAccession)
+                                                      .map(DbsnpSubmittedVariantEntity::getAccession)
                                                       .collect(Collectors.toSet());
         assertEquals(expectedVariants.size(), variantsToCheck.size());
         assertTrue(variantsToCheck.containsAll(expectedVariants));

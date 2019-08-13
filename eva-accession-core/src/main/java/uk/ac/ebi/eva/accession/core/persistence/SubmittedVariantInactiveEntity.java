@@ -84,6 +84,22 @@ public class SubmittedVariantInactiveEntity extends InactiveSubDocument<ISubmitt
         this.validated = submittedVariantEntity.isValidated();
     }
 
+    public SubmittedVariantInactiveEntity(DbsnpSubmittedVariantEntity submittedVariantEntity) {
+        super(submittedVariantEntity);
+        this.referenceSequenceAccession = submittedVariantEntity.getReferenceSequenceAccession();
+        this.taxonomyAccession = submittedVariantEntity.getTaxonomyAccession();
+        this.projectAccession = submittedVariantEntity.getProjectAccession();
+        this.contig = submittedVariantEntity.getContig();
+        this.start = submittedVariantEntity.getStart();
+        this.referenceAllele = submittedVariantEntity.getReferenceAllele();
+        this.alternateAllele = submittedVariantEntity.getAlternateAllele();
+        this.clusteredVariantAccession = submittedVariantEntity.getClusteredVariantAccession();
+        this.supportedByEvidence = submittedVariantEntity.isSupportedByEvidence();
+        this.assemblyMatch = submittedVariantEntity.isAssemblyMatch();
+        this.allelesMatch = submittedVariantEntity.isAllelesMatch();
+        this.validated = submittedVariantEntity.isValidated();
+    }
+
     @Override
     public String getReferenceSequenceAccession() {
         return referenceSequenceAccession;
