@@ -17,8 +17,10 @@
  */
 package uk.ac.ebi.eva.accession.core.persistence;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import uk.ac.ebi.ampt2d.commons.accession.persistence.models.AccessionProjection;
@@ -36,6 +38,9 @@ public class SubmittedVariantAccessioningRepositoryImpl
     public SubmittedVariantAccessioningRepositoryImpl(MongoTemplate mongoTemplate) {
         super(SubmittedVariantEntity.class, mongoTemplate);
         mongoOperations = mongoTemplate;
+        mongoOperations.indexOps(SubmittedVariantEntity.class).ensureIndex(new Index().on("accession", Sort.Direction.ASC)
+                                                                                      .background()
+                                                                                      .unique());
     }
 
     List<AccessionProjection<Long>> findByAccessionGreaterThanEqualAndAccessionLessThanEqual(Long start, Long end) {

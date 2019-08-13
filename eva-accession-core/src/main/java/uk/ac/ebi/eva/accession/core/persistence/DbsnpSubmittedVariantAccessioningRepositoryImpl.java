@@ -17,7 +17,9 @@
  */
 package uk.ac.ebi.eva.accession.core.persistence;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.index.Index;
 import uk.ac.ebi.ampt2d.commons.accession.persistence.mongodb.repository.BasicMongoDbAccessionedCustomRepositoryImpl;
 
 public class DbsnpSubmittedVariantAccessioningRepositoryImpl extends
@@ -25,5 +27,7 @@ public class DbsnpSubmittedVariantAccessioningRepositoryImpl extends
 
     public DbsnpSubmittedVariantAccessioningRepositoryImpl(MongoTemplate mongoTemplate) {
         super(DbsnpSubmittedVariantEntity.class, mongoTemplate);
+        mongoTemplate.indexOps(DbsnpSubmittedVariantEntity.class).ensureIndex(new Index().on("accession", Sort.Direction.ASC)
+                                                                                         .background());
     }
 }
