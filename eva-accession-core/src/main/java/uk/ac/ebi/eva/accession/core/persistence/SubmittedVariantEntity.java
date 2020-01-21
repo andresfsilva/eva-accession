@@ -264,7 +264,7 @@ public class SubmittedVariantEntity implements ISubmittedVariant, IAccessionedOb
 
     @Override
     public LocalDateTime getCreatedDate() {
-        return null;
+        return createdDate;
     }
 
     public void setValidated(Boolean validated) {

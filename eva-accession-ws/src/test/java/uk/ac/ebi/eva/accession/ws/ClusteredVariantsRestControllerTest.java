@@ -44,7 +44,7 @@ import uk.ac.ebi.ampt2d.commons.accession.core.exceptions.AccessionDoesNotExistE
 import uk.ac.ebi.ampt2d.commons.accession.core.exceptions.AccessionMergedException;
 import uk.ac.ebi.ampt2d.commons.accession.core.models.EventType;
 import uk.ac.ebi.ampt2d.commons.accession.hashing.SHA1HashingFunction;
-import uk.ac.ebi.ampt2d.commons.accession.persistence.mongodb.document.AccessionedDocument;
+import uk.ac.ebi.ampt2d.commons.accession.persistence.models.IAccessionedObject;
 import uk.ac.ebi.ampt2d.commons.accession.rest.controllers.BasicRestController;
 import uk.ac.ebi.ampt2d.commons.accession.rest.dto.AccessionResponseDTO;
 
@@ -315,12 +315,14 @@ public class ClusteredVariantsRestControllerTest {
         // one variant has no default flags, while the others have the default values
         SubmittedVariant submittedVariant3 = new SubmittedVariant("ASMACC01", 1102, "EVAPROJECT1", "CHROM1", 1234,
                                                                   "REF", "ALT", DBSNP_CLUSTERED_VARIANT_ACCESSION_2);
+        submittedVariant3.setCreatedDate(LocalDateTime.now());
         SubmittedVariant submittedVariant4 = new SubmittedVariant("ASMACC01", 1102, "EVAPROJECT1", "CHROM1", 4567,
                                                                   "REF", "ALT", DBSNP_CLUSTERED_VARIANT_ACCESSION_3,
                                                                   !ISubmittedVariant.DEFAULT_SUPPORTED_BY_EVIDENCE,
                                                                   !ISubmittedVariant.DEFAULT_ASSEMBLY_MATCH,
                                                                   !ISubmittedVariant.DEFAULT_ALLELES_MATCH,
-                                                                  !ISubmittedVariant.DEFAULT_VALIDATED, null);
+                                                                  !ISubmittedVariant.DEFAULT_VALIDATED,
+                                                                  LocalDateTime.now());
 
         SubmittedVariantSummaryFunction submittedVariantSummaryFunction = new SubmittedVariantSummaryFunction();
         evaSubmittedVariantEntity3 =
@@ -426,7 +428,7 @@ public class ClusteredVariantsRestControllerTest {
     private void checkClusteredVariantsOutput(
             List<AccessionResponseDTO<ClusteredVariant, IClusteredVariant, String, Long>> getVariantsResponse,
             Long accession) {
-        List<AccessionedDocument<IClusteredVariant, Long>> expectedVariants =
+        List<IAccessionedObject<IClusteredVariant, String, Long>> expectedVariants =
                 Stream.of(clusteredVariantEntity1, clusteredVariantEntity2, clusteredVariantEntity3)
                       .filter(v -> v.getAccession().equals(accession))
                       .collect(Collectors.toList());
@@ -438,7 +440,7 @@ public class ClusteredVariantsRestControllerTest {
 
     private <DTO, MODEL> void assertVariantsAreContainedInControllerResponse(
             List<AccessionResponseDTO<DTO, MODEL, String, Long>> getVariantsResponse,
-            List<AccessionedDocument<MODEL, Long>> expectedVariants,
+            List<IAccessionedObject<MODEL, String, Long>> expectedVariants,
             Function<MODEL, DTO> modelToDto) {
         // check the accessions returned by the service
         Set<Long> retrievedAccessions = getVariantsResponse.stream()
@@ -446,7 +448,7 @@ public class ClusteredVariantsRestControllerTest {
                                                            .collect(Collectors.toSet());
 
         assertTrue(expectedVariants.stream()
-                                   .map(AccessionedDocument::getAccession)
+                                   .map(IAccessionedObject::getAccession)
                                    .allMatch(retrievedAccessions::contains));
 
         // check the objects returned by the service
@@ -455,7 +457,7 @@ public class ClusteredVariantsRestControllerTest {
                                                                    .collect(Collectors.toSet());
 
         assertTrue(expectedVariants.stream()
-                                   .map(AccessionedDocument::getModel)
+                                   .map(IAccessionedObject::getModel)
                                    .map(modelToDto)
                                    .allMatch(variantsReturnedByController::contains));
     }
@@ -490,7 +492,8 @@ public class ClusteredVariantsRestControllerTest {
     private void checkSubmittedVariantsOutput(
             List<AccessionResponseDTO<SubmittedVariant, ISubmittedVariant, String, Long>> getSubmittedVariantsReponse,
             Long accession) {
-        List<AccessionedDocument<ISubmittedVariant, Long>> expectedVariants =
+
+        List<IAccessionedObject<ISubmittedVariant, String, Long>> expectedVariants =
                 Stream.of(submittedVariantEntity1, submittedVariantEntity2, evaSubmittedVariantEntity3,
                           evaSubmittedVariantEntity4)
                       .filter(v -> v.getAccession().equals(accession))
@@ -532,7 +535,7 @@ public class ClusteredVariantsRestControllerTest {
     }
 
     private void getAndCheckSubmittedVariantsByClusteredVariantIds(Long clusteredVariantIds,
-                                                                   List<AccessionedDocument<ISubmittedVariant, Long>>
+                                                                   List<IAccessionedObject<ISubmittedVariant, String, Long>>
                                                                            expectedSubmittedVariants)
             throws AccessionDoesNotExistException, AccessionDeprecatedException, AccessionMergedException {
         List<AccessionResponseDTO<SubmittedVariant, ISubmittedVariant, String, Long>> getVariantsResponse =
