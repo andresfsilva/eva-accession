@@ -150,14 +150,11 @@ public class SubmittedVariantAccessioningService implements AccessioningService<
     }
 
     @Override
-    public AccessionVersionsWrapper<ISubmittedVariant, String, Long> patch(Long accession, ISubmittedVariant variant)
-            throws AccessionDoesNotExistException, HashAlreadyExistsException, AccessionDeprecatedException,
-            AccessionMergedException {
-        if (accession >= accessioningMonotonicInitSs) {
-            return accessioningService.patch(accession, variant);
-        } else {
-            return accessioningServiceDbsnp.patch(accession, variant);
-        }
+    public AccessionVersionsWrapper<ISubmittedVariant, String, Long> patch(Long accession, ISubmittedVariant variant) {
+        throw new UnsupportedOperationException("Patch operation is not supported at the moment because it creates a " +
+                                                        "copy of the variant with a different version but with the" +
+                                                        "same hash, violating the unique index constraint for " +
+                                                        "accessions");
     }
 
     @Override

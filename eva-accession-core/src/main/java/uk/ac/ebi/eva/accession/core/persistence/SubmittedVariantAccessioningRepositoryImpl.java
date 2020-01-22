@@ -112,10 +112,11 @@ public class SubmittedVariantAccessioningRepositoryImpl
     private Optional<String> reportBulkOperationException(BulkWriteError error) {
         if (11000 == error.getCode()) {
             final String message = error.getMessage();
-            Pattern pattern = Pattern.compile("_id_ dup key:.\\{.:.\"(.*)\".\\}");
+//            Pattern pattern = Pattern.compile("_id_ dup key:.\\{.:.\"(.*)\".\\}");
+            Pattern pattern = Pattern.compile("dup key:.\\{.:.(.*).\\}");
             Matcher matcher = pattern.matcher(message);
             if (matcher.find()) {
-                return Optional.of(matcher.group(1));
+                return Optional.of(matcher.group(1).replaceAll("\"", ""));
             } else {
                 logger.error("Error parsing BulkWriteError in BulkOperationException. Code '" + error.getCode()
                                      + "' Message: '" + error.getMessage() + "'");

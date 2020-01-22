@@ -19,8 +19,10 @@ import com.lordofthejars.nosqlunit.annotation.UsingDataSet;
 import com.lordofthejars.nosqlunit.core.LoadStrategyEnum;
 import com.lordofthejars.nosqlunit.mongodb.MongoDbConfigurationBuilder;
 import com.lordofthejars.nosqlunit.mongodb.MongoDbRule;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -28,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.mongodb.BulkOperationException;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -317,6 +320,7 @@ public class SubmittedVariantAccessioningServiceTest {
         assertVariantUpdated(ACCESSION_DBSNP_1, submittedVariantModified);
     }
 
+    @Ignore
     @UsingDataSet(locations = {"/test-data/submittedVariantEntity.json"})
     @Test
     public void patchSubmittedVariant() throws AccessionDeprecatedException, AccessionDoesNotExistException,
@@ -325,18 +329,35 @@ public class SubmittedVariantAccessioningServiceTest {
         assertVariantPatched(ACCESSION, submittedVariantModified);
     }
 
+    @UsingDataSet(locations = {"/test-data/submittedVariantEntity.json"})
+    @Test
+    public void patchSubmittedVariantExpectedException() throws AccessionDeprecatedException, AccessionDoesNotExistException,
+            AccessionMergedException, HashAlreadyExistsException {
+        expectedException.expect(UnsupportedOperationException.class);
+        service.patch(ACCESSION, submittedVariantModified);
+    }
+
     private void assertVariantPatched(long accession, ISubmittedVariant modifiedVariant)
             throws AccessionMergedException, AccessionDoesNotExistException, AccessionDeprecatedException {
         ISubmittedVariant variantFromDb = service.getByAccession(accession).getData();
         assertEquals(modifiedVariant, variantFromDb);
     }
 
+    @Ignore
+    @UsingDataSet(locations = {"/test-data/dbsnpSubmittedVariantEntity.json"})
+    @Test
+    public void patchDbsnpSubmittedVariantExpectedException() throws AccessionDeprecatedException, AccessionDoesNotExistException,
+            AccessionMergedException, HashAlreadyExistsException {
+        service.patch(ACCESSION_DBSNP_1, submittedVariantModified);
+        assertVariantPatched(ACCESSION_DBSNP_1, submittedVariantModified);
+    }
+
     @UsingDataSet(locations = {"/test-data/dbsnpSubmittedVariantEntity.json"})
     @Test
     public void patchDbsnpSubmittedVariant() throws AccessionDeprecatedException, AccessionDoesNotExistException,
             AccessionMergedException, HashAlreadyExistsException {
+        expectedException.expect(UnsupportedOperationException.class);
         service.patch(ACCESSION_DBSNP_1, submittedVariantModified);
-        assertVariantPatched(ACCESSION_DBSNP_1, submittedVariantModified);
     }
 
     @UsingDataSet(locations = {"/test-data/submittedVariantEntity.json"})
