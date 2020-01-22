@@ -61,6 +61,7 @@ import uk.ac.ebi.eva.accession.ws.rest.SubmittedVariantsRestController;
 import uk.ac.ebi.eva.accession.ws.service.BeaconService;
 
 import javax.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -404,12 +405,14 @@ public class SubmittedVariantsRestControllerTest {
         Long CLUSTERED_VARIANT = null;
         SubmittedVariant variant1 = new SubmittedVariant("ASMACC01", 2000, "PROJACC01", "CHROM1", 1234, "REF", "ALT",
                                                          CLUSTERED_VARIANT);
+        variant1.setCreatedDate(LocalDateTime.now());
         Long outdatedAccession = 1L;
         SubmittedVariantEntity submittedVariantEntity1 = new SubmittedVariantEntity(outdatedAccession, "hash-100",
                                                                                     variant1, 1);
         Long currentAccession = 2L;
         SubmittedVariant variant2 = new SubmittedVariant("ASMACC02", 2000, "PROJACC02", "CHROM2", 1234, "REF", "ALT",
                                                          CLUSTERED_VARIANT);
+        variant2.setCreatedDate(LocalDateTime.now());
         SubmittedVariantEntity submittedVariantEntity2 = new SubmittedVariantEntity(currentAccession, "hash-200",
                                                                                     variant2, 1);
 
@@ -477,12 +480,14 @@ public class SubmittedVariantsRestControllerTest {
         Long CLUSTERED_VARIANT = null;
         SubmittedVariant variant1 = new SubmittedVariant("ASMACC01", 2000, "PROJACC01", "CHROM1", 1234, "REF", "ALT",
                                                          CLUSTERED_VARIANT);
+        variant1.setCreatedDate(LocalDateTime.now());
         Long deprecatedAccession = 1L;
         SubmittedVariantEntity submittedVariantEntity1 = new SubmittedVariantEntity(deprecatedAccession, "hash-100",
                                                                                     variant1, 1);
         Long otherAccession = 2L;
         SubmittedVariant variant2 = new SubmittedVariant("ASMACC02", 2000, "PROJACC02", "CHROM2", 1234, "REF", "ALT",
                                                          CLUSTERED_VARIANT);
+        variant2.setCreatedDate(LocalDateTime.now());
         SubmittedVariantEntity submittedVariantEntity2 = new SubmittedVariantEntity(otherAccession, "hash-200",
                                                                                     variant2, 1);
 
