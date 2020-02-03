@@ -28,10 +28,12 @@ import uk.ac.ebi.ampt2d.commons.accession.core.exceptions.AccessionMergedExcepti
 import uk.ac.ebi.ampt2d.commons.accession.core.exceptions.HashAlreadyExistsException;
 import uk.ac.ebi.ampt2d.commons.accession.core.models.AccessionVersionsWrapper;
 import uk.ac.ebi.ampt2d.commons.accession.core.models.AccessionWrapper;
+import uk.ac.ebi.ampt2d.commons.accession.core.models.GetOrCreateAccessionWrapper;
 
 import uk.ac.ebi.eva.accession.core.service.DbsnpSubmittedVariantMonotonicAccessioningService;
 import uk.ac.ebi.eva.accession.core.service.SubmittedVariantMonotonicAccessioningService;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -56,7 +58,7 @@ public class SubmittedVariantAccessioningService implements AccessioningService<
     }
 
     @Override
-    public List<AccessionWrapper<ISubmittedVariant, String, Long>> getOrCreate(
+    public List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> getOrCreate(
             List<? extends ISubmittedVariant> variants)
             throws AccessionCouldNotBeGeneratedException {
         List<AccessionWrapper<ISubmittedVariant, String, Long>> dbsnpVariants = accessioningServiceDbsnp.get(variants);
@@ -64,11 +66,24 @@ public class SubmittedVariantAccessioningService implements AccessioningService<
         if (variantsNotInDbsnp.isEmpty()) {
             // check this special case because mongo bulk inserts don't allow inserting empty lists
             // (accession-commons BasicMongoDbAccessionedCustomRepositoryImpl.insert would need to change)
-            return dbsnpVariants;
+            return dbsnpVariants.stream().map(d -> new GetOrCreateAccessionWrapper<>
+                    (d.getAccession(),
+                     d.getHash(),
+                     d.getData(), false)).collect(Collectors.toList());
         } else {
-            List<AccessionWrapper<ISubmittedVariant, String, Long>> submittedVariants = accessioningService.getOrCreate(
-                    variantsNotInDbsnp);
-            return joinLists(submittedVariants, dbsnpVariants);
+            List<AccessionWrapper<ISubmittedVariant, String, Long>> submittedVariants = new ArrayList<>();
+            accessioningService.getOrCreate(variantsNotInDbsnp)
+                               .forEach(getOrCreateAccessionWrapperObj -> submittedVariants.add(
+                                       new AccessionWrapper<ISubmittedVariant, String, Long>
+                                               (getOrCreateAccessionWrapperObj.getAccession(),
+                                                getOrCreateAccessionWrapperObj.getHash(),
+                                                getOrCreateAccessionWrapperObj.getData())));
+            return joinLists(submittedVariants, dbsnpVariants)
+                    .stream()
+                    .map(d -> new GetOrCreateAccessionWrapper<>
+                            (d.getAccession(),
+                             d.getHash(),
+                             d.getData(), false)).collect(Collectors.toList());
         }
     }
 
@@ -150,11 +165,14 @@ public class SubmittedVariantAccessioningService implements AccessioningService<
     }
 
     @Override
-    public AccessionVersionsWrapper<ISubmittedVariant, String, Long> patch(Long accession, ISubmittedVariant variant) {
-        throw new UnsupportedOperationException("Patch operation is not supported at the moment because it creates a " +
-                                                        "copy of the variant with a different version but with the" +
-                                                        "same hash, violating the unique index constraint for " +
-                                                        "accessions");
+    public AccessionVersionsWrapper<ISubmittedVariant, String, Long> patch(Long accession, ISubmittedVariant variant)
+            throws AccessionDoesNotExistException, HashAlreadyExistsException, AccessionDeprecatedException,
+            AccessionMergedException {
+        if (accession >= accessioningMonotonicInitSs) {
+            return accessioningService.patch(accession, variant);
+        } else {
+            return accessioningServiceDbsnp.patch(accession, variant);
+        }
     }
 
     @Override

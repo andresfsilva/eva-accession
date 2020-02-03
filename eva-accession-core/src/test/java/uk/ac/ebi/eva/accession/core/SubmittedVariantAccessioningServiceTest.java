@@ -19,7 +19,6 @@ import com.lordofthejars.nosqlunit.annotation.UsingDataSet;
 import com.lordofthejars.nosqlunit.core.LoadStrategyEnum;
 import com.lordofthejars.nosqlunit.mongodb.MongoDbConfigurationBuilder;
 import com.lordofthejars.nosqlunit.mongodb.MongoDbRule;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -30,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.mongodb.BulkOperationException;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -42,6 +40,7 @@ import uk.ac.ebi.ampt2d.commons.accession.core.exceptions.AccessionMergedExcepti
 import uk.ac.ebi.ampt2d.commons.accession.core.exceptions.HashAlreadyExistsException;
 import uk.ac.ebi.ampt2d.commons.accession.core.models.AccessionWrapper;
 import uk.ac.ebi.ampt2d.commons.accession.core.models.EventType;
+import uk.ac.ebi.ampt2d.commons.accession.core.models.GetOrCreateAccessionWrapper;
 import uk.ac.ebi.ampt2d.commons.accession.core.models.IEvent;
 import uk.ac.ebi.ampt2d.commons.accession.hashing.SHA1HashingFunction;
 
@@ -65,10 +64,8 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static uk.ac.ebi.eva.accession.core.ISubmittedVariant.DEFAULT_ALLELES_MATCH;
 import static uk.ac.ebi.eva.accession.core.ISubmittedVariant.DEFAULT_ASSEMBLY_MATCH;
 import static uk.ac.ebi.eva.accession.core.ISubmittedVariant.DEFAULT_SUPPORTED_BY_EVIDENCE;
@@ -175,8 +172,8 @@ public class SubmittedVariantAccessioningServiceTest {
                                      DEFAULT_VALIDATED, null),
                 newSubmittedVariant);
 
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions = service.getOrCreate(variants);
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> retrievedAccessions = service.getOrCreate(variants);
+        List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions = service.getOrCreate(variants);
+        List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> retrievedAccessions = service.getOrCreate(variants);
 
         assertEquals(new HashSet<>(generatedAccessions), new HashSet<>(retrievedAccessions));
     }
@@ -192,9 +189,9 @@ public class SubmittedVariantAccessioningServiceTest {
         List<SubmittedVariant> requestedVariants = Arrays.asList(
                 new SubmittedVariant("assembly", 1111, "project", "contig_1", 100, "ref", "alt", null),
                 new SubmittedVariant("assembly", 1111, "project", "contig_2", 100, "ref", "alt", null));
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions = service.getOrCreate(
+        List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions = service.getOrCreate(
                 originalVariants);
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> retrievedAccessions = service.getOrCreate(
+        List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> retrievedAccessions = service.getOrCreate(
                 requestedVariants);
 
         assertEquals(new HashSet<>(generatedAccessions), new HashSet<>(retrievedAccessions));
@@ -204,7 +201,7 @@ public class SubmittedVariantAccessioningServiceTest {
     @Test
     public void getOrCreateAccessionsInBothRepositories() throws AccessionCouldNotBeGeneratedException {
         List<SubmittedVariant> variants = Arrays.asList(submittedVariant, newSubmittedVariant, dbsnpSubmittedVariant);
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> submittedVariants = service.getOrCreate(variants);
+        List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> submittedVariants = service.getOrCreate(variants);
 
         long accession = submittedVariants.stream()
                                           .filter(x -> x.getData().getProjectAccession().equals(PROJECT))
@@ -227,7 +224,7 @@ public class SubmittedVariantAccessioningServiceTest {
         SubmittedVariant variantPresentInDbsnp = new SubmittedVariant("GCA_000009999.3", 9999, PROJECT_DBSNP, "21",
                                                                       20849999, "", "GG", null);
 
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions = service.getOrCreate(
+        List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions = service.getOrCreate(
                 Collections.singletonList(variantPresentInDbsnp));
         assertEquals(Collections.singleton(ACCESSION_DBSNP_1),
                      generatedAccessions.stream().map(AccessionWrapper::getAccession).collect(Collectors.toSet()));
@@ -239,7 +236,7 @@ public class SubmittedVariantAccessioningServiceTest {
         SubmittedVariant identicalVariantPresentInDbsnp = new SubmittedVariant("GCA_000009999.3", 9999, PROJECT_DBSNP,
                                                                                "21", 20849999, "", "GG", null);
 
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions = service.getOrCreate(
+        List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions = service.getOrCreate(
                 Arrays.asList(identicalVariantPresentInDbsnp));
 
         assertEquals(Collections.singleton(ACCESSION_DBSNP_1),
@@ -250,7 +247,7 @@ public class SubmittedVariantAccessioningServiceTest {
                                                                                 PROJECT_DBSNP, "21", 20849999, "", "GG",
                                                                                 null);
 
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions2 = service.getOrCreate(
+        List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions2 = service.getOrCreate(
                 Arrays.asList(identicalVariantPresentInDbsnp, equivalentVariantPresentInDbsnp));
 
         assertEquals(Collections.singleton(ACCESSION_DBSNP_1),
@@ -497,7 +494,7 @@ public class SubmittedVariantAccessioningServiceTest {
 
         submittedVariant.setCreatedDate(createdDate);
 
-        List<AccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions =
+        List<GetOrCreateAccessionWrapper<ISubmittedVariant, String, Long>> generatedAccessions =
                 service.getOrCreate(Collections.singletonList(submittedVariant));
 
         assertEquals(createdDate, generatedAccessions.get(0).getData().getCreatedDate());
